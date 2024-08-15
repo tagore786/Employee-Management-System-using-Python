@@ -1,162 +1,86 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import mysql.connector
 
-# C extensions
-*.so
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+con = mysql.connector.connect(
+    host="localhost", user="root", password="password", database="emp")
+def check_employee(employee_id):
+    # Query to select all rows from the employees table where id matches
+    sql = 'SELECT * FROM employees WHERE id=%s'
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+    # Making cursor buffered to make rowcount method work properly
+    cursor = con.cursor(buffered=True)
+    data = (employee_id,)
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+    # Executing the SQL Query
+    cursor.execute(sql, data)
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+    # Fetch the first row to check if employee exists
+    employee = cursor.fetchone()
 
-# Translations
-*.mo
-*.pot
+    # Closing the cursor
+    cursor.close()
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+    # If employee is found, return True, else return False
+    return employee is not None
+def add_employee():
+    Id = input("Enter Employee Id: ")
 
-# Flask stuff:
-instance/
-.webassets-cache
+    # Checking if Employee with given Id already exists
+    if check_employee(Id):
+        print("Employee already exists. Please try again.")
+        return
+    
+    else:
+        Name = input("Enter Employee Name: ")
+        Post = input("Enter Employee Post: ")
+        Salary = input("Enter Employee Salary: ")
 
-# Scrapy stuff:
-.scrapy
+        # Inserting Employee details into the employees table
+        sql = 'INSERT INTO employees (id, name, position, salary) VALUES (%s, %s, %s, %s)'
+        data = (Id, Name, Post, Salary)
+        cursor = con.cursor()
 
-# Sphinx documentation
-docs/_build/
+        try:
+            # Executing the SQL Query
+            cursor.execute(sql, data)
 
-# PyBuilder
-.pybuilder/
-target/
+            # Committing the transaction
+            con.commit()
+            print("Employee Added Successfully")
+        
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            con.rollback()
+        
+        finally:
+            # Closing the cursor
+            cursor.close()
+def remove_employee():
+    Id = input("Enter Employee Id: ")
 
-# Jupyter Notebook
-.ipynb_checkpoints
+    # Checking if Employee with given Id exists
+    if not check_employee(Id):
+        print("Employee does not exist. Please try again.")
+        return
+    
+    else:
+        # Query to delete employee from the employees table
+        sql = 'DELETE FROM employees WHERE id=%s'
+        data = (Id,)
+        cursor = con.cursor()
 
-# IPython
-profile_default/
-ipython_config.py
+        try:
+            # Executing the SQL Query
+            cursor.execute(sql, data)
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
-.pdm.toml
-.pdm-python
-.pdm-build/
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+            # Committing the transaction
+            con.commit()
+            print("Employee Removed Successfully")
+        
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            con.rollback()
+        
+        finally:
+            # Closing the cursor
+            cursor.close()
